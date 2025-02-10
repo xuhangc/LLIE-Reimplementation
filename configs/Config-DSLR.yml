@@ -2,7 +2,7 @@ VERBOSE: True
 
 MODEL:
   SESSION: 'LLIE'
-  MODEL: 'RetinexNet'
+  MODEL: 'DSLR'
   INPUT: 'input'
   TARGET: 'target'
 
