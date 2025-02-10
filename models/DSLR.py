@@ -1,8 +1,8 @@
-'''
+"""
 Deep Stacked Laplacian Restorer for Low-light Image Enhancement
 Authors: Lim, Seokjae and Kim, Wonjun
 IEEE Transactions on Multimedia, 2020
-'''
+"""
 
 import torch
 import torch.nn as nn

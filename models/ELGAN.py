@@ -1,12 +1,12 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
-'''
+"""
 Enlightengan: Deep light enhancement without paired supervision
 Authors: Jiang, Yifan and Gong, Xinyu and Liu, Ding and Cheng, Yu and Fang, Chen and Shen, Xiaohui and Yang, Jianchao and Zhou, Pan and Wang, Zhangyang
 IEEE transactions on image processing, 2021
-'''
+"""
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 
 class EncoderBlock(nn.Module):
@@ -60,6 +60,12 @@ class DecoderBlock(nn.Module):
                                  scale_factor=2,
                                  mode='bilinear',
                                  align_corners=True)
+
+        # Pad dec_feat if its spatial dimensions are smaller than enc_feat
+        diff_h = enc_feat.shape[2] - dec_feat.shape[2]
+        diff_w = enc_feat.shape[3] - dec_feat.shape[3]
+        dec_feat = F.pad(dec_feat, (0, diff_w, 0, diff_h))
+
         feat = torch.cat([self.deconv(dec_feat), enc_feat], 1)
         return self.de(feat)
 
@@ -117,7 +123,7 @@ if __name__ == '__main__':
     model = ELGAN().cuda().eval()
     print(model)
 
-    inp = torch.rand(1, 3, 256, 256).cuda()
+    inp = torch.rand(1, 3, 600, 400).cuda()
 
     macs, params = profile(model, inputs=(inp,))
     macs, params = clever_format([macs, params], "%.3f")
