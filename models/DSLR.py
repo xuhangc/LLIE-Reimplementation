@@ -1,7 +1,3 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
 '''
 Deep Stacked Laplacian Restorer for Low-light Image Enhancement
 Authors: Lim, Seokjae and Kim, Wonjun
@@ -118,7 +114,6 @@ class LMSB(nn.Module):
         self.lmsb_block_u1 = LMSB_Block(dim * 4, dim * 2, 4, 2, 1, lr_block, 3, True)
         self.lmsb_block_u2 = LMSB_Block(dim * 2, dim * 1, 4, 2, 1, lr_block, 3, True)
         self.lmsb_block_u3 = LMSB_Block(dim * 1, 3, 4, 2, 1, lr_block, 3, True, True)
-
 
     def sample(self, x, size):
         # Use 'size' instead of 'scale_factor' to avoid shape mismatch
