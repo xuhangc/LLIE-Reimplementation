@@ -266,7 +266,7 @@ class LLFormer(nn.Module):
                  inp_channels=3,
                  out_channels=3,
                  dim=16,
-                 num_blocks=[1, 2, 4, 8],
+                 num_blocks=[2, 4, 8, 16],
                  num_refinement_blocks=2,
                  heads=[1, 2, 4, 8],
                  ffn_expansion_factor=2.66,

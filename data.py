@@ -41,7 +41,7 @@ class CustomDataLoader(Dataset):
             )
         else:
             self.transform = A.Compose([
-                A.Resize(height=img_options['h'], width=img_options['w']),
+                A.NoOp(),
             ],
                 additional_targets={
                     'target': 'image',
