@@ -108,7 +108,7 @@ def train(option):
         if accelerator.is_local_main_process:
             os.makedirs(option.TRAINING.SAVE_DIR, exist_ok=True)
 
-        accelerator.init_trackers(option.MODEL.SESSION + "-" + option.MODEL.MODEL, config=option)
+        accelerator.init_trackers(option.MODEL.SESSION, config=option)
 
         # Data Loaders
         train_loader = create_data_loader(option, data_dir=option.TRAINING.TRAIN_DIR, mode='train',
