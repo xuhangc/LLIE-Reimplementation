@@ -8,6 +8,10 @@ Authors: Lim, Seokjae and Kim, Wonjun
 IEEE Transactions on Multimedia, 2020
 '''
 
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 
 class ResBlock(nn.Module):
     def __init__(self, dim, kernel_size=3):
@@ -29,24 +33,26 @@ class LRBLock_3(nn.Module):
         self.res_l2 = ResBlock(dim, kernel_size)
         self.res_l1 = ResBlock(dim, kernel_size)
 
-    def sample(self, x, scale_factor=2):
-        return F.interpolate(x, scale_factor=scale_factor, mode='bilinear', align_corners=False,
-                             recompute_scale_factor=True)
+    def sample(self, x, size=None):
+        # Use 'size' instead of 'scale_factor' to avoid shape mismatch
+        return F.interpolate(x, size=size, mode='bilinear', align_corners=False)
 
     def forward(self, x):
-        x_down2 = self.sample(x, 0.5)  # 128
-        x_down4 = self.sample(x_down2, 0.5)  # 64
+        # Downsample by specifying the target size
+        x_down2 = self.sample(x, size=(x.size(2) // 2, x.size(3) // 2))  # 128
+        x_down4 = self.sample(x_down2, size=(x_down2.size(2) // 2, x_down2.size(3) // 2))  # 64
 
-        laplace2 = x_down2 - self.sample(x_down4, 2)
-        laplace1 = x - self.sample(x_down2, 2)
+        # Upsample by specifying the target size
+        laplace2 = x_down2 - self.sample(x_down4, size=(x_down2.size(2), x_down2.size(3)))
+        laplace1 = x - self.sample(x_down2, size=(x.size(2), x.size(3)))
 
         scale1 = self.res_l1(x_down4)
         scale2 = self.res_l2(laplace2)
         scale3 = self.res_l3(laplace1)
 
         output1 = scale1
-        output2 = self.sample(scale1, 2) + scale2
-        output3 = self.sample(output2, 2) + scale3
+        output2 = self.sample(scale1, size=(laplace2.size(2), laplace2.size(3))) + scale2
+        output3 = self.sample(output2, size=(laplace1.size(2), laplace1.size(3))) + scale3
 
         return output3
 
@@ -57,16 +63,20 @@ class LRBLock_2(nn.Module):
         self.res_l2 = ResBlock(dim, kernel_size)
         self.res_l1 = ResBlock(dim, kernel_size)
 
-    def sample(self, x, scale_factor=2):
-        return F.interpolate(x, scale_factor=scale_factor, mode='bilinear', align_corners=False,
-                             recompute_scale_factor=True)
+    def sample(self, x, size=None):
+        # Use 'size' instead of 'scale_factor' to avoid shape mismatch
+        return F.interpolate(x, size=size, mode='bilinear', align_corners=False)
 
     def forward(self, x):
-        x_down2 = self.sample(x, 0.5)  # 128
-        laplace1 = x - self.sample(x_down2, 2)
+        # Downsample by specifying the target size
+        x_down2 = self.sample(x, size=(x.size(2) // 2, x.size(3) // 2))  # 128
+        laplace1 = x - self.sample(x_down2, size=(x.size(2), x.size(3)))
+
         scale1 = self.res_l1(x_down2)
         scale2 = self.res_l2(laplace1)
-        output2 = self.sample(scale1, 2) + scale2
+
+        output2 = self.sample(scale1, size=(laplace1.size(2), laplace1.size(3))) + scale2
+
         return output2
 
 
@@ -105,22 +115,24 @@ class LMSB(nn.Module):
         self.lmsb_block_d1 = LMSB_Block(3, dim * 1, 5, 2, 2, lr_block)
         self.lmsb_block_d2 = LMSB_Block(dim * 1, dim * 2, 5, 2, 2, lr_block)
         self.lmsb_block_d3 = LMSB_Block(dim * 2, dim * 4, 5, 2, 2, lr_block)
-
         self.lmsb_block_u1 = LMSB_Block(dim * 4, dim * 2, 4, 2, 1, lr_block, 3, True)
         self.lmsb_block_u2 = LMSB_Block(dim * 2, dim * 1, 4, 2, 1, lr_block, 3, True)
         self.lmsb_block_u3 = LMSB_Block(dim * 1, 3, 4, 2, 1, lr_block, 3, True, True)
+
+
+    def sample(self, x, size):
+        # Use 'size' instead of 'scale_factor' to avoid shape mismatch
+        return F.interpolate(x, size=size, mode='bilinear', align_corners=False)
 
     def forward(self, x):
         input_x = x
         x1 = self.lmsb_block_d1(x)
         x2 = self.lmsb_block_d2(x1)
         x3 = self.lmsb_block_d3(x2)
-
         x = self.lmsb_block_u1(x3)
-        x = self.lmsb_block_u2(x + x2)
-        x = self.lmsb_block_u3(x + x1)
-
-        return x + input_x
+        x = self.lmsb_block_u2(x + self.sample(x2, size=(x.size(2), x.size(3))))
+        x = self.lmsb_block_u3(x + self.sample(x1, size=(x.size(2), x.size(3))))
+        return x + self.sample(input_x, size=(x.size(2), x.size(3)))
 
 
 class DSLR(nn.Module):
@@ -130,26 +142,27 @@ class DSLR(nn.Module):
         self.stage2 = LMSB(32, LRBLock_2)
         self.stage3 = LMSB(32, LRBLock_2)
 
-    def sample(self, x, scale_factor=2):
-        return F.interpolate(x, scale_factor=scale_factor, mode='bilinear', align_corners=False,
-                             recompute_scale_factor=True)
+    def sample(self, x, size=None):
+        # Use 'size' instead of 'scale_factor' to avoid shape mismatch
+        return F.interpolate(x, size=size, mode='bilinear', align_corners=False)
 
     def forward(self, x):
-        x_down2 = self.sample(x, 0.5)  # 128
-        x_down4 = self.sample(x_down2, 0.5)  # 64
+        # Downsample by specifying the target size
+        x_down2 = self.sample(x, size=(x.size(2) // 2, x.size(3) // 2))  # 128
+        x_down4 = self.sample(x_down2, size=(x_down2.size(2) // 2, x_down2.size(3) // 2))  # 64
 
         ### Stage 1
         scale1 = self.stage1(x_down4)
 
         ### Stage 2
-        laplace2 = x_down2 - self.sample(x_down4, 2)
+        laplace2 = x_down2 - self.sample(x_down4, size=(x_down2.size(2), x_down2.size(3)))
         scale2 = self.stage2(laplace2)
-        output2 = self.sample(scale1, 2) + scale2
+        output2 = self.sample(scale1, size=(scale2.size(2), scale2.size(3))) + scale2
 
         ### Stage 3
-        laplace1 = x - self.sample(x_down2, 2)
+        laplace1 = x - self.sample(x_down2, size=(x.size(2), x.size(3)))
         scale3 = self.stage3(laplace1)
-        output3 = self.sample(output2, 2) + scale3
+        output3 = self.sample(output2, size=(scale3.size(2), scale3.size(3))) + scale3
 
         return output3
 
@@ -159,13 +172,10 @@ if __name__ == '__main__':
 
     model = DSLR().cuda().eval()
     print(model)
-
-    inp = torch.rand(1, 3, 256, 256).cuda()
-
+    inp = torch.rand(1, 3, 600, 400).cuda()
     macs, params = profile(model, inputs=(inp,))
     macs, params = clever_format([macs, params], "%.3f")
     print(f"MACs: {macs}, Parameters: {params}")
-
     with torch.no_grad():
         output = model(inp)
         print(output.shape)
