@@ -58,7 +58,8 @@ def load_model(model, weight_path, optimizer=None, device=None):
 def create_test_loader(option, test_dir, num_workers):
     test_dataset = CustomDataLoader(
         test_dir,
-        {'w': option.TRAINING.PS_W, 'h': option.TRAINING.PS_H, 'mode': 'test'}
+        img_options={'w': option.TRAINING.PS_W,
+                     'h': option.TRAINING.PS_H, 'mode': 'test'}
     )
     return DataLoader(
         dataset=test_dataset,
@@ -78,7 +79,7 @@ def test(option):
         model, _, _ = load_model(model, option.TESTING.WEIGHT, device=device)
 
         # Data Loader
-        test_loader = create_test_loader(option, option.TESTING.TEST_DIR, 8)
+        test_loader = create_test_loader(option, test_dir=option.TESTING.TEST_DIR, num_workers=16)
 
         # Output directory
         result_dir = option.TESTING.RESULT_DIR

@@ -59,6 +59,7 @@ class LoadConfig(object):
 
         self._C.MODEL = CN()
         self._C.MODEL.SESSION = ''
+        self._C.MODEL.MODEL = ''
         self._C.MODEL.NAME = ''
         self._C.MODEL.INPUT = ''
         self._C.MODEL.TARGET = ''
@@ -77,6 +78,7 @@ class LoadConfig(object):
         self._C.TRAINING = CN()
         self._C.TRAINING.VAL_AFTER_EVERY = 1
         self._C.TRAINING.RESUME = False
+        self._C.TRAINING.WEIGHT = ''
         self._C.TRAINING.TRAIN_DIR = ''
         self._C.TRAINING.VAL_DIR = ''
         self._C.TRAINING.SAVE_DIR = ''

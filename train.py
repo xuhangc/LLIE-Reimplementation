@@ -74,7 +74,7 @@ def load_model(model, weight_path, optimizer=None, device=None):
 def create_data_loader(option, data_dir, mode, batch_size, num_workers, shuffle=True):
     dataset = CustomDataLoader(
         data_dir,
-        {'w': option.TRAINING.PS_W, 'h': option.TRAINING.PS_H, 'mode': mode}
+        img_options={'w': option.TRAINING.PS_W, 'h': option.TRAINING.PS_H, 'mode': mode}
     )
     return DataLoader(
         dataset=dataset,
@@ -111,12 +111,13 @@ def train(option):
         accelerator.init_trackers(option.MODEL.SESSION + "-" + option.MODEL.MODEL, config=option)
 
         # Data Loaders
-        train_loader = create_data_loader(option, option.TRAINING.TRAIN_DIR, 'train',
-                                          option.OPTIM.BATCH_SIZE, 16, shuffle=True)
-        val_loader = create_data_loader(option, option.TRAINING.VAL_DIR, 'test', 1, 8, shuffle=False)
+        train_loader = create_data_loader(option, data_dir=option.TRAINING.TRAIN_DIR, mode='train',
+                                          batch_size=option.OPTIM.BATCH_SIZE, num_workers=16, shuffle=True)
+        val_loader = create_data_loader(option, data_dir=option.TRAINING.VAL_DIR, mode='test',
+                                        batch_size=1, num_workers=8, shuffle=False)
 
         # Model & Loss
-        model = model_registry.get(option.MODEL.MODEL)
+        model = model_registry.get(option.MODEL.MODEL)()
         optimizer = optim.AdamW(
             filter(lambda p: p.requires_grad, model.parameters()),
             lr=option.OPTIM.LR_INITIAL,
@@ -162,7 +163,7 @@ def train(option):
 
                 if metric_psnr > best_psnr and accelerator.is_local_main_process:
                     best_epoch, best_psnr = epoch, metric_psnr
-                    checkpoint_file = os.path.join(option.TRAINING.SAVE_DIR, f"{option.MODEL.MODEL}_epoch_{epoch}.pth")
+                    checkpoint_file = os.path.join(option.TRAINING.SAVE_DIR, f"{option.MODEL.MODEL}_best.pth")
                     torch.save({
                         'epoch': epoch,
                         'state_dict': model.state_dict(),
@@ -179,6 +180,13 @@ def train(option):
                     }, step=epoch)
                     print(f"Epoch: {epoch}, PSNR: {metric_psnr}, SSIM: {metric_ssim}, "
                           f"Best PSNR: {best_psnr}, Best Epoch: {best_epoch}")
+                    checkpoint_file = os.path.join(option.TRAINING.SAVE_DIR, f"{option.MODEL.MODEL}_latest.pth")
+                    torch.save({
+                        'epoch': epoch,
+                        'state_dict': model.state_dict(),
+                        'optimizer': optimizer.state_dict(),
+                        'scheduler': scheduler.state_dict()
+                    }, checkpoint_file)
 
 
 if __name__ == '__main__':
