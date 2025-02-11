@@ -19,8 +19,8 @@ TRAINING:
   VAL_AFTER_EVERY: 1
   RESUME: False
   WEIGHT: ''
-  PS_W: 128
-  PS_H: 128
+  PS_W: 256
+  PS_H: 256
   TRAIN_DIR: '../dataset/LOL-v1/train' # path to training data
   VAL_DIR: '../dataset/LOL-v1/test'   # path to validation data
   SAVE_DIR: './checkpoints'  # path to save models
