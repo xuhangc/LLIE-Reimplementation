@@ -1,5 +1,6 @@
 from .DSLR import DSLR
 from .ELGAN import ELGAN
+from .KinD import KinD, KinDPP
 from .LLFormer import LLFormer
 from .RetinexFormer import RetinexFormer
 from .RetinexNet import RetinexNet
@@ -17,5 +18,7 @@ model_registry = {
     'ZeroDCEPP': ZeroDCEPP,
     'LLFormer': LLFormer,
     'RetinexFormer': RetinexFormer,
-    'RUAS': RUAS
+    'RUAS': RUAS,
+    'KinD': KinD,
+    'KinDPP': KinDPP
 }
