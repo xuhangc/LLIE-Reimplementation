@@ -554,7 +554,7 @@ class KinD_noDecom(nn.Module):
         R_final = self.restore_net(R, L)  # WARN: should pass I or I_final?, (mostly I)
         L_final_3 = torch.cat([L_final, L_final, L_final], dim=1)  # WARN: why dim=1?
         out = L_final_3 * R_final
-        return R_final, L_final, out
+        return out
 
 
 class KinD(nn.Module):
@@ -572,8 +572,8 @@ class KinD(nn.Module):
 
     def forward(self, I):
         R, L = self.decom_net(I)
-        R_final, L_final, out = self.KinD_noDecom(R, L, self.ratio)
-        return R_final, L_final, out
+        out = self.KinD_noDecom(R, L, self.ratio)
+        return out
 
 
 class KinDPP(nn.Module):
@@ -592,7 +592,7 @@ class KinDPP(nn.Module):
         if L_final_3.shape[2:] != R_final.shape[2:]:
             R_final = F.interpolate(R_final, L_final_3.shape[2:])
         out = L_final_3 * R_final
-        return R_final, L_final, out
+        return out
 
 
 if __name__ == '__main__':
