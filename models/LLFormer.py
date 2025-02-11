@@ -188,15 +188,42 @@ class OverlapPatchEmbed(nn.Module):
 
 ##########################################################################
 ## Resizing modules
+# class Downsample(nn.Module):
+#     def __init__(self, n_feat):
+#         super(Downsample, self).__init__()
+#
+#         self.body = nn.Sequential(nn.Conv2d(n_feat, n_feat // 2, kernel_size=3, stride=1, padding=1, bias=False),
+#                                   nn.PixelUnshuffle(2))
+#
+#     def forward(self, x):
+#         return self.body(x)
 class Downsample(nn.Module):
     def __init__(self, n_feat):
         super(Downsample, self).__init__()
-
-        self.body = nn.Sequential(nn.Conv2d(n_feat, n_feat // 2, kernel_size=3, stride=1, padding=1, bias=False),
-                                  nn.PixelUnshuffle(2))
+        self.body = nn.Sequential(
+            nn.Conv2d(n_feat, n_feat // 2, kernel_size=3, stride=1, padding=1, bias=False)
+        )
+        self.pixel_unshuffle = nn.PixelUnshuffle(2)
 
     def forward(self, x):
-        return self.body(x)
+        # Check if dimensions are divisible by 2
+        h, w = x.shape[-2:]
+        pad_h = (2 - h % 2) % 2
+        pad_w = (2 - w % 2) % 2
+
+        if pad_h > 0 or pad_w > 0:
+            x = F.pad(x, (0, pad_w, 0, pad_h))
+
+        x = self.body(x)
+        x = self.pixel_unshuffle(x)
+
+        # Remove padding if added
+        if pad_h > 0 or pad_w > 0:
+            new_h = (h + pad_h) // 2
+            new_w = (w + pad_w) // 2
+            x = x[..., :new_h, :new_w]
+
+        return x
 
 
 class Upsample(nn.Module):
@@ -368,6 +395,17 @@ class LLFormer(nn.Module):
         self.output = nn.Conv2d(int(dim), out_channels, kernel_size=3, stride=1, padding=1, bias=bias)
         self.skip = skip
 
+    def match_dimensions(self, x1, x2):
+        """Helper function to match dimensions of two tensors"""
+        if x1.shape != x2.shape:
+            target_size = (min(x1.shape[2], x2.shape[2]),
+                           min(x1.shape[3], x2.shape[3]))
+            if x1.shape[2:] > target_size:
+                x1 = F.interpolate(x1, size=target_size, mode='bilinear', align_corners=False)
+            if x2.shape[2:] > target_size:
+                x2 = F.interpolate(x2, size=target_size, mode='bilinear', align_corners=False)
+        return x1, x2
+
     def forward(self, inp_img):
 
         inp_enc_encoder1 = self.patch_embed(inp_img)
@@ -394,6 +432,8 @@ class LLFormer(nn.Module):
         out_enc_level4_0 = self.decoder_level4(inp_enc_level4_0)
 
         out_enc_level4_0 = self.up4_3(out_enc_level4_0)
+
+        out_enc_level3_0, out_enc_level4_0 = self.match_dimensions(out_enc_level3_0, out_enc_level4_0)
 
         inp_enc_level3_1 = self.coefficient_4_3[0, :][None, :, None, None] * out_enc_level3_0 + self.coefficient_4_3[1,
                                                                                                 :][None, :, None,
