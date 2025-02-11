@@ -2,7 +2,7 @@ VERBOSE: True
 
 MODEL:
   SESSION: 'LLIE'
-  MODEL: 'RetinexNet'
+  MODEL: 'ZeroDCEPP'
   INPUT: 'input'
   TARGET: 'target'
 
@@ -13,7 +13,7 @@ OPTIM:
   LR_INITIAL: 2e-4
   LR_MIN: 1e-6
   SEED: 3407
-  WANDB: False
+  WANDB: True
 
 TRAINING:
   VAL_AFTER_EVERY: 1

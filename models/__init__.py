@@ -6,6 +6,7 @@ from .RetinexNet import RetinexNet
 from .SGM import SGM
 from .ZeroDCE import ZeroDCE
 from .ZeroDCEPP import ZeroDCEPP
+from .RUAS import RUAS
 
 model_registry = {
     "RetinexNet": RetinexNet,
@@ -15,5 +16,6 @@ model_registry = {
     'SGM': SGM,
     'ZeroDCEPP': ZeroDCEPP,
     'LLFormer': LLFormer,
-    'RetinexFormer': RetinexFormer
+    'RetinexFormer': RetinexFormer,
+    'RUAS': RUAS
 }
