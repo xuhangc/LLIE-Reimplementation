@@ -1,0 +1,31 @@
+VERBOSE: True
+
+MODEL:
+  SESSION: 'LLIE'
+  MODEL: 'DRBN'
+  INPUT: 'input'
+  TARGET: 'target'
+
+# Optimization arguments.
+OPTIM:
+  BATCH_SIZE: 8
+  NUM_EPOCHS: 200
+  LR_INITIAL: 2e-4
+  LR_MIN: 1e-6
+  SEED: 3407
+  WANDB: True
+
+TRAINING:
+  VAL_AFTER_EVERY: 1
+  RESUME: False
+  WEIGHT: ''
+  PS_W: 256
+  PS_H: 256
+  TRAIN_DIR: '../dataset/LOL-v1/train' # path to training data
+  VAL_DIR: '../dataset/LOL-v1/test'   # path to validation data
+  SAVE_DIR: './checkpoints'  # path to save models
+
+TESTING:
+  WEIGHT: './checkpoints/check.pth'
+  TEST_DIR: '../dataset/LOL-v1/test'  # path to testing data
+  RESULT_DIR: './results' # path to save results
