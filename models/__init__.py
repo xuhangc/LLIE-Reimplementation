@@ -9,6 +9,7 @@ from .SGM import SGM
 from .ZeroDCE import ZeroDCE
 from .ZeroDCEPP import ZeroDCEPP
 from .RUAS import RUAS
+from .MambaIRv2Light import MambaIRv2Light
 
 model_registry = {
     "RetinexNet": RetinexNet,
@@ -22,5 +23,6 @@ model_registry = {
     "RUAS": RUAS,
     "KinD": KinD,
     "KinDPP": KinDPP,
-    "DRBN": DRBN
+    "DRBN": DRBN,
+    "MambaIRv2Light": MambaIRv2Light,
 }
