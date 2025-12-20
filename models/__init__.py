@@ -9,7 +9,13 @@ from .SGM import SGM
 from .ZeroDCE import ZeroDCE
 from .ZeroDCEPP import ZeroDCEPP
 from .RUAS import RUAS
-from .MambaIRv2Light import MambaIRv2Light
+from .LMTGP import LMTGP
+from .DarkIR import DarkIR
+from .CIDNet import CIDNet
+from .RetinexMamba import RetinexMamba
+from .SVDLUT import SVDLUT
+from .CWNet import CWNet
+from .URWKV import URWKV
 
 model_registry = {
     "RetinexNet": RetinexNet,
@@ -24,5 +30,11 @@ model_registry = {
     "KinD": KinD,
     "KinDPP": KinDPP,
     "DRBN": DRBN,
-    "MambaIRv2Light": MambaIRv2Light,
+    "LMTGP": LMTGP,
+    "DarkIR": DarkIR,
+    "CIDNet": CIDNet,
+    "RetinexMamba": RetinexMamba,
+    "SVDLUT": SVDLUT,
+    "CWNet": CWNet,
+    "URWKV": URWKV
 }

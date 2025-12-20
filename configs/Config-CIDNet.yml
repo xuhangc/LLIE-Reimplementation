@@ -2,7 +2,7 @@ VERBOSE: True
 
 MODEL:
   SESSION: 'LLIE'
-  MODEL: 'LLFormer'
+  MODEL: 'CIDNet'
   INPUT: 'input'
   TARGET: 'target'
 
